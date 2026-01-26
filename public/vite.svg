@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true">
+  <defs>
+    <linearGradient id="brandGradient" x1="3" y1="3" x2="21" y2="21">
+      <stop offset="0" stop-color="#2563eb" />
+      <stop offset="1" stop-color="#22c55e" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M6.5 4.75h5A1.75 1.75 0 0 1 13.25 6.5v12.25H6.5A1.75 1.75 0 0 1 4.75 17V6.5A1.75 1.75 0 0 1 6.5 4.75Zm6 0h5A1.75 1.75 0 0 1 19.25 6.5V17A1.75 1.75 0 0 1 17.5 18.75h-4.75V6.5A1.75 1.75 0 0 0 12.5 4.75Z"
+    fill="url(#brandGradient)"
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+  />
+  <path d="M9.25 9.25h2.5" stroke="#0f172a" stroke-width="1.75" stroke-linecap="round" opacity="0.95" />
+  <path d="M9.25 12h2.5" stroke="#0f172a" stroke-width="1.75" stroke-linecap="round" opacity="0.95" />
+  <path d="M9.25 14.75h2.5" stroke="#0f172a" stroke-width="1.75" stroke-linecap="round" opacity="0.95" />
+  <path
+    d="M14.75 10l1.5 2-1.5 2"
+    stroke="#0f172a"
+    stroke-width="1.75"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.95"
+  />
+</svg>
