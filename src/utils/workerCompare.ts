@@ -1,5 +1,6 @@
 import type { ComparisonConfig, ComparisonStats, DiffLine } from '../types/comparison'
-import CompareWorker from '../workers/compare.worker?worker&inline'
+import CompareWorker from '../workers/compare.worker?worker'
+import { computeDiffLines } from './diffEngine'
 
 type CompareWorkerRequest = {
   id: string
@@ -19,12 +20,21 @@ type CompareWorkerResponse =
   | { id: string; ok: false; error: string }
 
 let workerSingleton: Worker | null = null
+let workerUnsupported = false
 let nextId = 1
 const pending = new Map<string, { resolve: (v: CompareWorkerResponse) => void; reject: (e: unknown) => void }>()
 
-function getWorker(): Worker {
+function getWorker(): Worker | null {
+  if (workerUnsupported) return null
   if (workerSingleton) return workerSingleton
-  const worker = new CompareWorker()
+
+  let worker: Worker
+  try {
+    worker = new CompareWorker()
+  } catch {
+    workerUnsupported = true
+    return null
+  }
 
   worker.onmessage = (event: MessageEvent<CompareWorkerResponse>) => {
     const msg = event.data
@@ -37,6 +47,8 @@ function getWorker(): Worker {
   worker.onerror = (e) => {
     for (const [, entry] of pending) entry.reject(e)
     pending.clear()
+    workerUnsupported = true
+    workerSingleton = null
   }
 
   workerSingleton = worker
@@ -55,6 +67,10 @@ export async function compareFilesInWorker(input: {
   config: ComparisonConfig
 }): Promise<Extract<CompareWorkerResponse, { ok: true }>['payload']> {
   const worker = getWorker()
+  if (!worker) {
+    const { lines, stats } = computeDiffLines(input.textA, input.textB, input.config)
+    return { lines, stats }
+  }
   const id = makeId()
 
   const response = await new Promise<CompareWorkerResponse>((resolve, reject) => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue'
 import { comparisonState } from '../store/comparisonStore'
 import type { ComparisonResult } from '../types/comparison'
 import { detectFileKind, parseFile } from '../utils/fileParser'
@@ -10,12 +10,18 @@ import DiffViewer from './DiffViewer.vue'
 import FileUploader from './FileUploader.vue'
 import NavigationBar from './NavigationBar.vue'
 import StatsPanel from './StatsPanel.vue'
-import VueOfficeDocx from '@vue-office/docx'
-import VueOfficeExcel from '@vue-office/excel'
-import VueOfficePdf from '@vue-office/pdf'
-import VueOfficePptx from '@vue-office/pptx'
-import '@vue-office/docx/lib/index.css'
-import '@vue-office/excel/lib/index.css'
+
+const VueOfficeDocx = defineAsyncComponent(() => import('@vue-office/docx'))
+const VueOfficeExcel = defineAsyncComponent(() => import('@vue-office/excel'))
+const VueOfficePdf = defineAsyncComponent(() => import('@vue-office/pdf'))
+const VueOfficePptx = defineAsyncComponent(() => import('@vue-office/pptx'))
+
+let officeCssLoaded = false
+async function ensureOfficeCssLoaded(): Promise<void> {
+  if (officeCssLoaded) return
+  officeCssLoaded = true
+  await Promise.all([import('@vue-office/docx/lib/index.css'), import('@vue-office/excel/lib/index.css')])
+}
 
 const fileA = ref<File | null>(null)
 const fileB = ref<File | null>(null)
@@ -37,6 +43,11 @@ const previewA = ref<PreviewState>({ kind: null, status: 'idle', src: null, erro
 const previewB = ref<PreviewState>({ kind: null, status: 'idle', src: null, error: null })
 
 const hasAnyPreview = computed(() => previewA.value.kind !== null || previewB.value.kind !== null)
+
+watch([activeView, hasAnyPreview], ([view, any]) => {
+  if (view !== 'preview' || !any) return
+  void ensureOfficeCssLoaded()
+})
 
 const displayLines = computed(() => {
   const result = comparisonState.result

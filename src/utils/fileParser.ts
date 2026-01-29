@@ -38,7 +38,7 @@ async function ensurePdfWorker(pdfjs: unknown): Promise<void> {
   if (!globalOptions) return
 
   if (!pdfWorkerSingleton) {
-    const PdfWorker = (await import('pdfjs-dist/legacy/build/pdf.worker?worker&inline')).default as unknown as new (
+    const PdfWorker = (await import('pdfjs-dist/legacy/build/pdf.worker?worker')).default as unknown as new (
       opts?: WorkerOptions,
     ) => Worker
     pdfWorkerSingleton = new PdfWorker({ type: 'module' })
@@ -205,10 +205,16 @@ async function parseWordToText(file: File): Promise<string> {
 async function parsePdfToText(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer()
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf')
-  await ensurePdfWorker(pdfjs)
+  let disableWorker = false
+  try {
+    await ensurePdfWorker(pdfjs)
+  } catch {
+    disableWorker = true
+  }
 
   const loadingTask = (pdfjs as unknown as { getDocument: (src: unknown) => { promise: Promise<any> } }).getDocument({
     data: new Uint8Array(arrayBuffer),
+    disableWorker,
   })
   const pdf = await loadingTask.promise
   const parts: string[] = []
